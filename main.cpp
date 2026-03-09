@@ -2,6 +2,7 @@
 #include <ctime>
 #include <cstdlib>
 
+#include "model.h"
 #include "tgaimage.h"
 
 constexpr TGAColor white   = {255, 255, 255, 255}; // attention, BGRA order
@@ -43,12 +44,12 @@ int main(int argc, char** argv) {
     int bx = 12, by = 37;
     int cx = 62, cy = 53;
 
-    std::srand(std::time({}));
-    for (int i=0; i<(1<<24); i++) {
-        int ax = rand()%width, ay = rand()%height;
-        int bx = rand()%width, by = rand()%height;
-        line(ax, ay, bx, by, framebuffer, { rand()%255, rand()%255, rand()%255, rand()%255 });
-    }
+    // std::srand(std::time({}));
+    // for (int i=0; i<(1<<24); i++) {
+    //     int ax = rand()%width, ay = rand()%height;
+    //     int bx = rand()%width, by = rand()%height;
+    //     line(ax, ay, bx, by, framebuffer, { rand()%255, rand()%255, rand()%255, rand()%255 });
+    // }
 
     // line(ax, ay, bx, by, framebuffer, blue);
     // line(cx, cy, bx, by, framebuffer, green);
@@ -58,6 +59,8 @@ int main(int argc, char** argv) {
     // framebuffer.set(ax, ay, white);
     // framebuffer.set(bx, by, white);
     // framebuffer.set(cx, cy, white);
+
+    Model test("diablo3_pose.obj");
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
