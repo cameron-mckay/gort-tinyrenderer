@@ -8,8 +8,12 @@
 #include <string>
 #include <vector>
 
-struct vertex {
-    float x, y, z;
+struct vec2 {
+    double x, y;
+};
+
+struct vec3 {
+    double x, y, z;
 };
 
 struct face {
@@ -20,7 +24,7 @@ class Model
 {
 public:
     Model(std::string path);
-    std::vector<vertex> vertices;
+    std::vector<vec3> vertices;
     std::vector<face> faces;
 };
 

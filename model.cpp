@@ -24,16 +24,16 @@ Model::Model(std::string path) {
             std::string s3 = line.substr(j+1, line.length()-1);
 
             if (type == "v") {
-                vertex vertex;
+                vec3 vertex;
                 vertex.x = std::stof(s1);
                 vertex.y = std::stof(s2);
                 vertex.z = std::stof(s3);
                 vertices.push_back(vertex);
             } else if (type == "f") {
                 face face;
-                face.v0 = std::stoi(s1.substr(0,s1.find('/')));
-                face.v1 = std::stoi(s2.substr(0,s2.find('/')));
-                face.v2 = std::stoi(s3.substr(0,s3.find('/')));
+                face.v0 = std::stoi(s1.substr(0,s1.find('/')))-1;
+                face.v1 = std::stoi(s2.substr(0,s2.find('/')))-1;
+                face.v2 = std::stoi(s3.substr(0,s3.find('/')))-1;
                 faces.push_back(face);
             }
         }

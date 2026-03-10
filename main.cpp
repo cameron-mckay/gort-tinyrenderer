@@ -5,6 +5,8 @@
 #include "model.h"
 #include "tgaimage.h"
 
+constexpr int width  = 800;
+constexpr int height = 800;
 constexpr TGAColor white   = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green   = {  0, 255,   0, 255};
 constexpr TGAColor red     = {  0,   0, 255, 255};
@@ -35,9 +37,11 @@ void line(int ax, int ay, int bx, int by, TGAImage &buffer, TGAColor color) {
     }
 }
 
+vec2 project(vec3 point) {
+    return { (point.x + 1.) * (width/2), (point.y+1.) * (height/2) };
+}
+
 int main(int argc, char** argv) {
-    constexpr int width  = 64;
-    constexpr int height = 64;
     TGAImage framebuffer(width, height, TGAImage::RGB);
 
     int ax =  7, ay =  3;
@@ -60,7 +64,23 @@ int main(int argc, char** argv) {
     // framebuffer.set(bx, by, white);
     // framebuffer.set(cx, cy, white);
 
-    Model test("diablo3_pose.obj");
+    Model test("./obj/diablo3_pose/diablo3_pose.obj");
+
+
+    for (int i = 0; i < test.faces.size(); i++) {
+        auto face = test.faces[i];
+        auto v0 = project(test.vertices[face.v0]);
+        auto v1 = project(test.vertices[face.v1]);
+        auto v2 = project(test.vertices[face.v2]);
+
+        line(v0.x, v0.y, v1.x, v1.y, framebuffer, red);
+        line(v1.x, v1.y, v2.x, v2.y, framebuffer, red);
+        line(v2.x, v2.y, v0.x, v0.y, framebuffer, red);
+        framebuffer.set(v0.x, v0.y, white);
+        framebuffer.set(v1.x, v1.y, white);
+        framebuffer.set(v2.x, v2.y, white);
+    }
+
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
