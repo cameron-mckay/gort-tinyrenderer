@@ -26,5 +26,7 @@ set(SOURCES main.cpp tgaimage.cpp
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
+target_compile_options(${PROJECT_NAME} PRIVATE -fopenmp)
+target_link_options(${PROJECT_NAME} PRIVATE -fopenmp)
 
 file(GENERATE OUTPUT .gitignore CONTENT "*")

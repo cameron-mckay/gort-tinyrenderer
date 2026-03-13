@@ -7,8 +7,8 @@
 
 // constexpr int width  = 128;
 // constexpr int height = 128;
-constexpr int width  = 8000;
-constexpr int height = 8000;
+constexpr int width  = 800;
+constexpr int height = 800;
 constexpr TGAColor white   = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green   = {  0, 255,   0, 255};
 constexpr TGAColor red     = {  0,   0, 255, 255};
@@ -43,66 +43,43 @@ vec2 project(vec3 point) {
     return { (point.x + 1.) * (width/2), (point.y+1.) * (height/2) };
 }
 
-void wireframe(Model &model, TGAImage &buffer) {
+double signed_area(int ax, int ay, int bx, int by, int cx, int cy) {
+    return .5 * ((by-ay)*(bx+ax) + (cy-by)*(cx+bx) + (ay-cy)*(ax+cx));
+}
+
+void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &buffer, TGAColor color) {
+    int bbminx = std::min(std::min(ax, bx), cx);
+    int bbminy = std::min(std::min(ay, by), cy);
+    int bbmaxx = std::max(std::max(ax, bx), cx);
+    int bbmaxy = std::max(std::max(ay, by), cy);
+
+    double total_area = signed_area(ax, ay, bx, by, cx, cy);
+
+    if (total_area < 1) return;
+#pragma omp parallel for
+    for (int x=bbminx; x <= bbmaxx; x++) {
+        for (int y=bbminy; y <= bbmaxy; y++) {
+            double a = signed_area(x, y, bx, by, cx, cy) / total_area;
+            double b = signed_area(x, y, cx, cy, ax, ay) / total_area;
+            double c = signed_area(x, y, ax, ay, bx, by) / total_area;
+            if (a < 0 || b < 0 || c < 0) continue;
+            buffer.set(x, y, color);
+        }
+    }
+}
+
+void wireframe(Model &model, TGAImage &buffer, TGAColor color) {
     for (int i = 0; i < model.faces.size(); i++) {
         auto face = model.faces[i];
         auto v0 = project(model.vertices[face.v0]);
         auto v1 = project(model.vertices[face.v1]);
         auto v2 = project(model.vertices[face.v2]);
-        line(v0.x, v0.y, v1.x, v1.y, buffer, green);
-        line(v1.x, v1.y, v2.x, v2.y, buffer, green);
-        line(v2.x, v2.y, v0.x, v0.y, buffer, green);
-        buffer.set(v0.x, v0.y, white);
-        buffer.set(v1.x, v1.y, white);
-        buffer.set(v2.x, v2.y, white);
+        triangle(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y, buffer, { rand()%255, rand()%255, rand()%255, rand()%255 });
     }
-}
-
-void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &buffer, TGAColor color) {
-    if (ay>by) {
-        std::swap(ax, bx);
-        std::swap(ay, by);
-    }
-    if (ay>cy) {
-        std::swap(ax, cx);
-        std::swap(ay, cy);
-    }
-    if (by>cy) {
-        std::swap(bx, cx);
-        std::swap(by, cy);
-    }
-
-    // int dxa = abs(cx - ax);
-    // int dya = abs(cy - ay) * -1;
-    // int sxa = ax < cx ? 1 : -1;
-    // int sya = ay < cy ? 1 : -1;
-    //
-    // int dxb = abs(cx - ax);
-    // int dyb = abs(cy - ay) * -1;
-    // int sxb = ax < cx ? 1 : -1;
-    // int syb = ay < cy ? 1 : -1;
-    //
-    // int errora = dxa + dya;
-    // int errorb = dxb + dyb;
-    // int e2;
-    // while (true) {
-    //     buffer.set(ax,ay,color);
-    //     e2 = 2 * error;
-    //     if (e2 >= dy) {
-    //         if (ax == bx) break;
-    //         error = error + dy;
-    //         ax += sx;
-    //     }
-    //     if (e2 <= dx) {
-    //         if (ay == by) break;
-    //         error = error + dx;
-    //         ay += sy;
-    //     }
+    // for (int i = 0; i < model.vertices.size(); i++) {
+    //     auto vertex = project(model.vertices[i]);
+    //     buffer.set(vertex.x, vertex.y, white);
     // }
-
-    // line(ax, ay, bx, by, buffer, green);
-    // line(bx, by, cx, cy, buffer, green);
-    // line(cx, cy, ax, ay, buffer, red);
 }
 
 int main(int argc, char** argv) {
@@ -129,8 +106,8 @@ int main(int argc, char** argv) {
     // }
 
     /* diablo wireframe */
-    Model model("./obj/diablo3_pose/diablo3_pose.obj");
-    wireframe(model, framebuffer);
+    Model model("./obj/african_head/african_head.obj");
+    wireframe(model, framebuffer, red);
 
     // triangle(  7, 45, 35, 100, 45,  60, framebuffer, red);
     // triangle(120, 35, 90,   5, 45, 110, framebuffer, white);
